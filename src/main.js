@@ -173,10 +173,10 @@ function analyzeSalesData(data, options) {
     return acc;
   }, {});
 
-  console.log(sortedSellers);
-
   // Сортируем продавцов по убыванию прибыли.
   const sortedSellers = Object.entries(sellerStats).toSorted((a, b) => b[1].profit - a[1].profit);
+
+  console.log(sortedSellers);
 
   // Добавляем бонус каждому продавцу.
   const sellersWithBonus = sortedSellers.map(([_id, seller], index) => ({
