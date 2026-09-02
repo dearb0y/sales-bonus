@@ -68,7 +68,7 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateTotalRevenue(purchaseItems, revenueFunc) {
   return purchaseItems.reduce((acc, item) => {
-    return acc + revenueFunc(item);
+    return acc + Math.round(revenueFunc(item) * 100) / 100;
   }, 0);
 }
 
@@ -81,7 +81,11 @@ function calculateTotalRevenue(purchaseItems, revenueFunc) {
  */
 function calculateTotalProfit(purchaseItems, revenueFunc, products) {
   return purchaseItems.reduce((acc, item) => {
-    return acc + (revenueFunc(item) - getProductPurchasePrice(item.sku, products) * item.quantity);
+    return (
+      acc +
+      ((revenueFunc(item) - getProductPurchasePrice(item.sku, products) * item.quantity) * 100) /
+        100
+    );
   }, 0);
 }
 
@@ -176,8 +180,6 @@ function analyzeSalesData(data, options) {
   // Сортируем продавцов по убыванию прибыли.
   const sortedSellers = Object.entries(sellerStats).toSorted((a, b) => b[1].profit - a[1].profit);
 
-  console.log(sortedSellers);
-
   // Добавляем бонус каждому продавцу.
   const sellersWithBonus = sortedSellers.map(([_id, seller], index) => ({
     ...seller,
@@ -187,10 +189,10 @@ function analyzeSalesData(data, options) {
   // Определяем ТОП продукты у каждого продавца и округляем значения.
   const sellersWithBestProducts = sellersWithBonus.map((seller) => {
     return {
-      id: seller.id,
+      seller_id: seller.id,
       name: seller.name,
-      profit: +seller.profit.toFixed(2),
       revenue: +seller.revenue.toFixed(2),
+      profit: +seller.profit.toFixed(2),
       sales_count: seller.sales_count,
       top_products: Object.entries(seller.sold_products)
         .sort((a, b) => b[1] - a[1])
