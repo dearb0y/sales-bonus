@@ -168,7 +168,10 @@ function analyzeSalesData(data, options) {
 
     // Определяем статистику по проданным товарам и их количеству.
     const soldProducts = items.reduce(
-      (accItems, { sku, quantity }) => ({ ...accItems, [sku]: quantity }),
+      (accItems, { sku, quantity }) => ({
+        ...accItems,
+        [sku]: quantity + (accItems[sku] ?? 0) + (acc[sellerKey].sold_products?.[sku] ?? 0),
+      }),
       {},
     );
 
