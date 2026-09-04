@@ -140,11 +140,12 @@ function analyzeSalesData(data, options) {
 
   // Обходим массив транзакций для формирования статистики для каждого продавца.
   const sellerStats = data.purchase_records.reduce((acc, record) => {
-    // Определяем базовые ключи.
+    // Определяем базовые ключи i-ого продавца.
     const sellerKey = record['seller_id'];
     const sellerData = sellerIndex[sellerKey];
     const items = record['items'];
     const userData = acc[sellerKey];
+    const soldProducts = acc[sellerKey]?.sold_products ?? {};
 
     // Расчет расходов, прибыли и т.д.
     const revenue = calculateTotalRevenue(items, calculateRevenue);
@@ -158,24 +159,21 @@ function analyzeSalesData(data, options) {
       };
     }
 
+    // Определяем статистику по проданным товарам и их количеству.
+    items.forEach(({ sku, quantity }) => {
+      // В накопленных проданных товарах i-ого продавца обновляем количество.
+      soldProducts[sku] = quantity + (soldProducts[sku] ?? 0);
+    });
+
     // Заполняем оставшиеся данные.
     acc[sellerKey] = {
-      ...acc[sellerKey],
+      id: acc[sellerKey].id,
+      name: acc[sellerKey].name,
       revenue: revenue + (userData?.revenue || 0),
       profit: profit + (userData?.profit || 0),
       sales_count: 1 + (userData?.sales_count || 0),
+      sold_products: { ...soldProducts },
     };
-
-    // Определяем статистику по проданным товарам и их количеству.
-    const soldProducts = items.reduce(
-      (accItems, { sku, quantity }) => ({
-        ...accItems,
-        [sku]: quantity + (accItems[sku] ?? 0) + (acc[sellerKey].sold_products?.[sku] ?? 0),
-      }),
-      {},
-    );
-
-    acc[sellerKey].sold_products = { ...acc[sellerKey].sold_products, ...soldProducts };
 
     return acc;
   }, {});
